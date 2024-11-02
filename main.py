@@ -4,6 +4,7 @@ from flight_search import FlightSearch
 from data_manager import DataManager
 from flight_data import FlightData
 from constants import ORIGIN_LOCATION_CODE
+from func_messaging import send_message
 
 data_manager = DataManager()
 flight_search = FlightSearch()
@@ -22,14 +23,30 @@ six_month_period = datetime.datetime.now() + datetime.timedelta(days=6*30)
 departure_date = datetime.datetime.now() + datetime.timedelta(days=1)
 
 for row in data["prices"]:
-    print(f"Getting flights from {row["city"]}...")
-    result_json_data = flight_search.get_flights(origin_location_code=ORIGIN_LOCATION_CODE, 
-                                                destination_location_code=row["iataCode"], 
-                                                departure_date=departure_date.strftime("%Y-%m-%d"),
-                                                return_date=six_month_period.strftime("%Y-%m-%d"),
-                                                adults=1)
+    print(f"Getting non-stop flights from {row["city"]}...")
+    result_json_data = flight_search.get_flights(
+                                                    origin_location_code=ORIGIN_LOCATION_CODE, 
+                                                    destination_location_code=row["iataCode"], 
+                                                    departure_date=departure_date.strftime("%Y-%m-%d"),
+                                                    return_date=six_month_period.strftime("%Y-%m-%d"),
+                                                    adults=1,
+                                                    non_stop="true"
+                                                )
     if result_json_data is None or not result_json_data["data"]:
-        print("No flight data")
+        print(f"Getting flights from {row["city"]}...")
+        result_json_data = flight_search.get_flights(
+                                                        origin_location_code=ORIGIN_LOCATION_CODE, 
+                                                        destination_location_code=row["iataCode"], 
+                                                        departure_date=departure_date.strftime("%Y-%m-%d"),
+                                                        return_date=six_month_period.strftime("%Y-%m-%d"),
+                                                        adults=1,
+                                                        non_stop="false"
+                                                    )
+        if result_json_data is None or not result_json_data["data"]:
+            print("No data found")
+        else:
+            print(f"{row["city"]}: {result_json_data["data"][0]["price"]["total"]} {result_json_data["data"][0]["price"]["currency"]}")
+            flight_data.append(FlightData(ORIGIN_LOCATION_CODE, row["iataCode"], float(result_json_data["data"][0]["price"]["total"]), result_json_data["data"][0]["price"]["currency"]))
     else:
         print(f"{row["city"]}: {result_json_data["data"][0]["price"]["total"]} {result_json_data["data"][0]["price"]["currency"]}")
         flight_data.append(FlightData(ORIGIN_LOCATION_CODE, row["iataCode"], float(result_json_data["data"][0]["price"]["total"]), result_json_data["data"][0]["price"]["currency"]))
@@ -46,4 +63,7 @@ if flight_data != []:
             min_index = index
         index += 1
 
-    print(f"Cheapest flight: {cheapest_flight.destination_airport_code} for {cheapest_flight.price} {cheapest_flight.currency}")
+    send_message(f"Cheapest flight: {cheapest_flight.destination_airport_code} for {cheapest_flight.price} {cheapest_flight.currency}")
+
+else:
+    send_message("Flight not found")

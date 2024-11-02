@@ -12,3 +12,6 @@ SHEETY_PWD = config("SHEETY_PWD")
 SHEET_URL = "https://api.sheety.co/1f64a373e866f672231eb62d7cf431a2/flightDeals/prices"
 
 ORIGIN_LOCATION_CODE = "LON"
+
+CHAT_ID = config("CHAT_ID")
+BOT_TOKEN = config("BOT_TOKEN")

@@ -56,17 +56,17 @@ class FlightSearch:
 
         return code
     
-    def get_flights(self, origin_location_code: str, destination_location_code: str, departure_date: str, return_date: str, adults: int):
+    def get_flights(self, origin_location_code: str, destination_location_code: str, departure_date: str, return_date: str, adults: int, non_stop: str):
         headers = {"Authorization": f"Bearer {self._token}"}
         query = {
             "originLocationCode": origin_location_code,
             "destinationLocationCode": destination_location_code,
             "departureDate": departure_date,
             "returnDate": return_date,
-            "nonStop": "true",
+            "nonStop": non_stop,
             "currencyCode": "EUR",
             "adults": adults,
-            "max": 3
+            "max": 1
         }
 
         response = requests.get(
